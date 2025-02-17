@@ -1,0 +1,31 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@implements IDisposable
+
+@inject CounterSingleton CounterSingleton
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @CounterSingleton.Count</p>
+
+<button class="btn btn-primary" @onclick="CounterSingleton.Increment">Increment</button>
+<button class="btn btn-primary" @onclick="CounterSingleton.Decrement">Decrement</button>
+
+@code {
+    protected override void OnInitialized()
+    {
+        CounterSingleton.CountChanged += OnChange;
+    }
+
+    private void OnChange(object? sender, EventArgs e)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        CounterSingleton.CountChanged -= OnChange;
+    }
+}

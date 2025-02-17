@@ -1,8 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "1-blazor", "1-blazor", "{CBD227F6-DC6D-4A3B-9652-D0FDFADDFD36}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPush", "1-blazor\BlazorPush\BlazorPush.csproj", "{EA71F095-D3C9-4035-A3B9-A92EA3261520}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPush.AppHost", "1-blazor\BlazorPush.AppHost\BlazorPush.AppHost.csproj", "{97E015C9-309A-429A-8DC1-43323E6648AA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EA71F095-D3C9-4035-A3B9-A92EA3261520} = {CBD227F6-DC6D-4A3B-9652-D0FDFADDFD36}
+		{97E015C9-309A-429A-8DC1-43323E6648AA} = {CBD227F6-DC6D-4A3B-9652-D0FDFADDFD36}
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EA71F095-D3C9-4035-A3B9-A92EA3261520}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EA71F095-D3C9-4035-A3B9-A92EA3261520}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EA71F095-D3C9-4035-A3B9-A92EA3261520}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EA71F095-D3C9-4035-A3B9-A92EA3261520}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97E015C9-309A-429A-8DC1-43323E6648AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97E015C9-309A-429A-8DC1-43323E6648AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97E015C9-309A-429A-8DC1-43323E6648AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97E015C9-309A-429A-8DC1-43323E6648AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
