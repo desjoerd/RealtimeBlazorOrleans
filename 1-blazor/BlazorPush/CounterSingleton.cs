@@ -2,20 +2,20 @@
 
 public class CounterSingleton
 {
-    private int _count = 0;
+    private int count = 0;
 
-    public int Count => _count;
+    public int Count => count;
 
     public void Increment()
     {
-        Interlocked.Increment(ref _count);
+        Interlocked.Increment(ref count);
 
         OnCountChanged();
     }
 
     public void Decrement()
     {
-        Interlocked.Decrement(ref _count);
+        Interlocked.Decrement(ref count);
 
         OnCountChanged();
     }

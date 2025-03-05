@@ -1,0 +1,80 @@
+﻿@using MinimalBlazorOrleans.Grains
+@using MinimalBlazorOrleans.Helpers
+@implements IAsyncDisposable
+@implements ICounterObserver
+
+@inject IClusterClient OrleansClient
+@inject ILogger<CounterComponent> Logger
+
+<div class="counter-component">
+    @if (isLoaded)
+    {
+        <h3>Counter Updates for @CounterId</h3>
+        <div>
+            <p>Current Count: @currentCount</p>
+            <button class="btn btn-primary" @onclick="IncrementCount">Increment</button>
+            <button class="btn btn-secondary" @onclick="DecrementCount">Decrement</button>
+        </div>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string CounterId { get; set; } = "counter1";
+
+    private int currentCount;
+    // private StreamSubscriptionHandle<int> subscriptionHandle = null!;
+    private ICounterGrain counterGrain = null!;
+    private bool isLoaded = false;
+    private IAsyncDisposable? observerHandle = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Subscribe to the Orleans stream using the provided CounterId and the interface name as the namespace.
+        // var streamProvider = OrleansClient.GetStreamProvider("Default");
+        // var stream = streamProvider.GetStream<int>(nameof(ICounterGrain), CounterId);
+        // subscriptionHandle = await stream.SubscribeAsync(async (updatedCount, token) =>
+        // {
+        //     await InvokeAsync(() =>
+        //     {
+        //         currentCount = updatedCount;
+        //         StateHasChanged();
+        //     });
+        // });
+
+        // Retrieve the counter grain with the specified ID and initialize the current count.
+        counterGrain = OrleansClient.GetGrain<ICounterGrain>(CounterId);
+        observerHandle = OrleansClient.WatchGrain<ICounterGrain, ICounterObserver>(CounterId, this, Logger);
+        currentCount = await counterGrain.GetCount();
+
+        isLoaded = true;
+    }
+
+    private async Task IncrementCount()
+    {
+        await counterGrain.Increment();
+    }
+
+    private async Task DecrementCount()
+    {
+        await counterGrain.Decrement();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if(observerHandle is not null)
+        {
+            await observerHandle.DisposeAsync();
+        }
+    }
+
+    public Task OnCountUpdated(int count)
+    {
+        currentCount = count;
+        return Task.CompletedTask;
+    }
+}

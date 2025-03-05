@@ -1,0 +1,39 @@
+﻿@page "/counter"
+@using MinimalBlazorOrleans.Components.UI
+@rendermode InteractiveServer
+
+<PageTitle>Counters</PageTitle>
+
+<h1>Counters</h1>
+
+<form @onsubmit="AddCounter">
+    <input type="text" name="counterId" @bind="counterToAdd" required="required" vali/>
+    <button type="submit">Add Counter</button>
+</form>
+
+@foreach (var counter in counters)
+{
+    <CounterComponent CounterId="@counter" />
+}
+
+@code {
+    private readonly List<string> counters = new();
+
+    private string counterToAdd = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        counters.AddRange(new []
+        {
+            "counter1",
+            "counter2",
+            "counter3"
+        });
+    }
+
+    private void AddCounter()
+    {
+        counters.Add(counterToAdd);
+    }
+
+}

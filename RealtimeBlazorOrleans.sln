@@ -6,6 +6,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPush", "1-blazor\Blaz
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorPush.AppHost", "1-blazor\BlazorPush.AppHost\BlazorPush.AppHost.csproj", "{97E015C9-309A-429A-8DC1-43323E6648AA}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "2-minimal-blazor-orleans", "2-minimal-blazor-orleans", "{1AC68D89-A048-432A-A052-CD2B4BCF676F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinimalBlazorOrleans", "2-minimal-blazor-orleans\MinimalBlazorOrleans\MinimalBlazorOrleans.csproj", "{658D61DA-6CC6-4911-B959-26846E6835D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinimalBlazorOrleans.AppHost", "2-minimal-blazor-orleans\MinimalBlazorOrleans.AppHost\MinimalBlazorOrleans.AppHost.csproj", "{9BC348EC-3575-4CE6-A4DE-674A664A19AC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MinimalBlazorOrleans.ServiceDefaults", "2-minimal-blazor-orleans\MinimalBlazorOrleans.ServiceDefaults\MinimalBlazorOrleans.ServiceDefaults.csproj", "{E2B1A85F-4552-443F-A729-ABE6FC954047}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -14,6 +22,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{EA71F095-D3C9-4035-A3B9-A92EA3261520} = {CBD227F6-DC6D-4A3B-9652-D0FDFADDFD36}
 		{97E015C9-309A-429A-8DC1-43323E6648AA} = {CBD227F6-DC6D-4A3B-9652-D0FDFADDFD36}
+		{658D61DA-6CC6-4911-B959-26846E6835D9} = {1AC68D89-A048-432A-A052-CD2B4BCF676F}
+		{9BC348EC-3575-4CE6-A4DE-674A664A19AC} = {1AC68D89-A048-432A-A052-CD2B4BCF676F}
+		{E2B1A85F-4552-443F-A729-ABE6FC954047} = {1AC68D89-A048-432A-A052-CD2B4BCF676F}
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{EA71F095-D3C9-4035-A3B9-A92EA3261520}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -24,5 +35,17 @@ Global
 		{97E015C9-309A-429A-8DC1-43323E6648AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97E015C9-309A-429A-8DC1-43323E6648AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97E015C9-309A-429A-8DC1-43323E6648AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{658D61DA-6CC6-4911-B959-26846E6835D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{658D61DA-6CC6-4911-B959-26846E6835D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{658D61DA-6CC6-4911-B959-26846E6835D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{658D61DA-6CC6-4911-B959-26846E6835D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BC348EC-3575-4CE6-A4DE-674A664A19AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BC348EC-3575-4CE6-A4DE-674A664A19AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BC348EC-3575-4CE6-A4DE-674A664A19AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BC348EC-3575-4CE6-A4DE-674A664A19AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E2B1A85F-4552-443F-A729-ABE6FC954047}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E2B1A85F-4552-443F-A729-ABE6FC954047}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E2B1A85F-4552-443F-A729-ABE6FC954047}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E2B1A85F-4552-443F-A729-ABE6FC954047}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
