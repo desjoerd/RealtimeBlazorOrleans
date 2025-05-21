@@ -1,0 +1,151 @@
+﻿@using Orleans.Streams
+@using ParkAid.WebApp.Grains
+@using ParkAid.WebApp.Blazor
+@implements IAsyncDisposable
+@implements IChatObserver
+@implements Orleans.Streams.IAsyncObserver<ChatMessage>
+
+<div class="chat-widget">
+    <header class="chat-header">
+        <h4>@Title</h4>
+    </header>
+    <div class="chat-messages-container">
+        @foreach (var message in messages)
+        {
+            var messageClass = message.SenderType == SenderType.Guest ? "message-guest" : "message-support";
+
+            <div class="message @messageClass">
+                <div class="message-header">
+                    <strong>@(message.SenderType == SenderType.Guest ? "You" : "Support")</strong>
+                    <span class="message-time">@message.TimestampUtc.ToLocalTime().ToString("t")</span>
+                </div>
+                <div class="message-content">
+                    @message.Message
+                </div>
+            </div>
+        }
+        <div @ref="messagesEndDiv"></div>
+    </div>
+    <div class="chat-input">
+        <form @onsubmit="SubmitMessage">
+            <input type="text" @bind="newMessageText" placeholder="Type your message..." />
+            <button class="btn btn-primary" type="submit">Send</button>
+        </form>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public required string ChatId { get; set; }
+
+    [Parameter]
+    public required SenderType SenderType { get; set; }
+
+    [Parameter]
+    public string Title { get; set; } = "Chat";
+
+    [Parameter]
+    public ICastMemberGrain? Sender { get; set; }
+
+    [Inject] public required IGrainFactory GrainFactory { get; set; }
+
+    [Inject] public required IClusterClient ClusterClient { get; set; }
+
+    [Inject] public required ILoggerFactory LoggerFactory { get; set; }
+
+    [Inject] public required IJSRuntime JS { get; set; }
+
+    private IChatGrain? chatGrain = null;
+    private string newMessageText = string.Empty;
+    private List<ChatMessage> messages = new();
+    private IAsyncDisposable? observerHandle = null;
+    private ElementReference messagesEndDiv;
+
+    private StreamSubscriptionHandle<ChatMessage>? streamHandle = null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(chatGrain != null && chatGrain.GetPrimaryKeyString() == ChatId)
+        {
+            return;
+        }
+
+        Console.WriteLine("ChatId: " + ChatId);
+        chatGrain = GrainFactory.GetGrain<IChatGrain>(ChatId);
+        //observerHandle = GrainFactory.WatchGrain<IChatGrain, IChatObserver>(chatGrain, this, LoggerFactory);
+
+        if (streamHandle?.StreamId.GetKeyAsString() != ChatId)
+        {
+            await (streamHandle?.UnsubscribeAsync() ?? Task.CompletedTask);
+            streamHandle = null;
+        }
+
+        if (streamHandle == null)
+        {
+            streamHandle = await ClusterClient.GetStreamProvider("DefaultStreaming")
+                .GetStream<ChatMessage>(StreamId.Create(nameof(IChatGrain), ChatId))
+                .SubscribeAsync(this);
+        }
+
+        await RefreshMessages();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await ScrollToBottom();
+    }
+
+    private async Task ScrollToBottom(bool smooth = true)
+    {
+        try
+        {
+            await JS.InvokeVoidAsync("scrollElementToEnd", messagesEndDiv, new { smooth });
+        }
+        catch
+        {
+            // Ignore JS interop errors
+        }
+    }
+
+    private async Task RefreshMessages()
+    {
+        messages = (await chatGrain.GetMessages()).ToList();
+        StateHasChanged();
+    }
+
+    private async Task SubmitMessage()
+    {
+        if (string.IsNullOrEmpty(newMessageText)) return;
+
+        await chatGrain.SendMessage(newMessageText, SenderType, Sender);
+        newMessageText = string.Empty;
+    }
+
+    public Task OnMessageReceived(ChatMessage message)
+    {
+        messages.Add(message);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (observerHandle != null) await observerHandle.DisposeAsync();
+
+        await (streamHandle?.UnsubscribeAsync() ?? Task.CompletedTask);
+    }
+
+    public Task OnNextAsync(ChatMessage item, StreamSequenceToken? token = null)
+    {
+        messages.Add(item);
+        return InvokeAsync(StateHasChanged);
+    }
+
+    public Task OnErrorAsync(Exception ex)
+    {
+        // Handle error
+        Console.WriteLine($"Error: {ex.Message}");
+        return Task.CompletedTask;
+    }
+
+}

@@ -1,0 +1,66 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+@implements IAsyncDisposable
+@implements IChatObserver
+
+@inject IGrainFactory GrainFactory
+@inject NavigationManager NavigationManager
+
+<PageTitle>Home</PageTitle>
+
+@using ParkAid.WebApp.Blazor
+@using ParkAid.WebApp.Grains
+<h3>VisitorChat</h3>
+
+@if (chatGrain is null)
+{
+    <h4>Welcome to park aid</h4>
+    <p>We are here to help you about all park questions</p>
+    <p>Click the button below to start a chat</p>
+    <button class="btn btn-primary" @onclick="StartChat">Start Chat</button>
+}
+else
+{
+        <h4>Chat started</h4>
+}
+
+@code {
+    private IChatGrain? chatGrain;
+
+    private string newMessageText = string.Empty;
+
+    private List<ChatMessage> messages = new List<ChatMessage>();
+    private IAsyncDisposable? observerHandle = null;
+
+    private async Task StartChat()
+    {
+        var chatManager = GrainFactory.GetGrain<IChatQueueGrain>("default");
+
+        chatGrain = await chatManager.RequestChat();
+        var grainId = chatGrain.GetGrainId();
+
+        NavigationManager.NavigateTo("VisitorChat/" + grainId.Key);
+    }
+
+    private async Task SubmitMessage()
+    {
+        await chatGrain.SendMessage(this.newMessageText, SenderType.Guest, null);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        var disposeHandle = observerHandle;
+        if(disposeHandle != null)
+        {
+            await disposeHandle.DisposeAsync();
+        }
+    }
+
+    public Task OnMessageReceived(ChatMessage message)
+    {
+        messages.Add(message);
+        return Task.CompletedTask;
+    }
+
+}

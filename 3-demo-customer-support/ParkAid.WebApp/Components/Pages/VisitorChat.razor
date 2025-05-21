@@ -1,0 +1,13 @@
+﻿@page "/VisitorChat/{ChatId}"
+@rendermode InteractiveServer
+
+@using ParkAid.WebApp.Grains
+@using ParkAid.WebApp.Components.UI
+
+<h3>Visitor Chat</h3>
+
+<Chat ChatId="@ChatId" SenderType="SenderType.Guest" Title="Chat with Support" />
+
+@code {
+    [Parameter] public required string ChatId { get; set; }
+}

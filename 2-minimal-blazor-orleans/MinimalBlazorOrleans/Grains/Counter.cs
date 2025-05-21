@@ -1,5 +1,6 @@
 ﻿using Orleans.Concurrency;
 using Orleans.Utilities;
+using Orleans.Streams;
 
 namespace MinimalBlazorOrleans.Grains;
 
@@ -19,7 +20,7 @@ public interface ICounterObserver : IGrainObserver
 
 public class CounterGrain(ILogger<CounterGrain> logger) : Grain, ICounterGrain
 {
-    private readonly ObserverManager<ICounterObserver> observerManager = new(TimeSpan.FromMinutes(5), logger);
+    private readonly ObserverManager<ICounterObserver> observerManager = new ObserverManager<ICounterObserver>(expiration: TimeSpan.FromMinutes(5), logger);
 
     private int Count { get; set; }
 
@@ -40,9 +41,11 @@ public class CounterGrain(ILogger<CounterGrain> logger) : Grain, ICounterGrain
         return Task.FromResult(Count);
     }
 
-    private Task PublishUpdate()
+    private async Task PublishUpdate()
     {
-        return observerManager.Notify(x => x.OnCountUpdated(Count));
+        await this.GetStreamProvider("DefaultStreaming")
+            .GetStream<int>(nameof(ICounterGrain), this.GetPrimaryKeyString())
+            .OnNextAsync(Count);
     }
 
     public Task Subscribe(ICounterObserver watcher)

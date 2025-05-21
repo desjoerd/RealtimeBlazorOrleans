@@ -4,9 +4,9 @@ using MinimalBlazorOrleans.Grains.Filters;
 var builder = WebApplication.CreateBuilder(args);
 // Aspire service defaults
 builder.AddServiceDefaults();
-//
-// builder.AddKeyedAzureBlobClient("blobs");
-// builder.AddKeyedAzureTableClient("tables");
+
+builder.AddKeyedAzureBlobClient("blobs");
+builder.AddKeyedAzureTableClient("tables", options => options.DisableHealthChecks = true);
 
 builder.UseOrleans(options =>
 {
@@ -14,8 +14,7 @@ builder.UseOrleans(options =>
     options.AddDistributedGrainDirectory();
 #pragma warning restore ORLEANSEXP003
 
-    options.UseLocalhostClustering();
-    options.UseDashboard(x => x.HostSelf = true);
+    options.UseDashboard(x => x.HostSelf = false);
 
     options.AddIncomingGrainCallFilter(new BlazorIncomingGrainFilter());
 

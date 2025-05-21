@@ -1,0 +1,15 @@
+﻿.messages-container {
+    width: 8rem;
+    height: 16rem;
+
+    overflow-y:scroll;
+
+    background: #e5e6e7;
+
+    display: flex;
+    flex-direction: column;
+}
+
+.message-guest {
+    justify-self: right;
+}

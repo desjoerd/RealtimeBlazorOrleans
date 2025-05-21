@@ -5,7 +5,7 @@ namespace MinimalBlazorOrleans.Helpers;
 public static class ObserverExtensions
 {
     public static IAsyncDisposable WatchGrain<TGrain, TObserver>(
-        this IGrainFactory grainFactory,
+        this IClusterClient grainFactory,
         string grainId,
         TObserver observerInstance,
         ILogger logger)

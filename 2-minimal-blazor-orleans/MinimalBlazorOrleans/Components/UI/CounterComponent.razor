@@ -1,5 +1,6 @@
 ﻿@using MinimalBlazorOrleans.Grains
 @using MinimalBlazorOrleans.Helpers
+@using Orleans.Streams
 @implements IAsyncDisposable
 @implements ICounterObserver
 
@@ -35,9 +36,9 @@
     protected override async Task OnParametersSetAsync()
     {
         // Subscribe to the Orleans stream using the provided CounterId and the interface name as the namespace.
-        // var streamProvider = OrleansClient.GetStreamProvider("Default");
-        // var stream = streamProvider.GetStream<int>(nameof(ICounterGrain), CounterId);
-        // subscriptionHandle = await stream.SubscribeAsync(async (updatedCount, token) =>
+        var streamProvider = OrleansClient.GetStreamProvider("DefaultStreaming");
+        var stream = streamProvider.GetStream<int>(nameof(ICounterGrain), CounterId);
+        var handle = await stream.SubscribeAsync(async (updatedCount, sequenceToken) => { });
         // {
         //     await InvokeAsync(() =>
         //     {

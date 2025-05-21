@@ -1,0 +1,214 @@
+@page "/CastMember"
+@page "/CastMember/{Name}"
+@rendermode InteractiveServer
+@using Orleans.Streams
+@using Orleans.Streams.Core
+@using ParkAid.WebApp.Grains
+@using ParkAid.WebApp.Components.UI
+@implements IDisposable
+
+@inject IGrainFactory GrainFactory
+@inject IClusterClient AProvider
+@inject NavigationManager NavigationManager
+@inject ILogger<CastMember> Logger
+
+<h3>Cast Member Portal</h3>
+
+@if (string.IsNullOrEmpty(Name))
+{
+  <div class="card">
+    <div class="card-header">
+      <h4>Login</h4>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label for="castMemberName">Your Name</label>
+        <input type="text" class="form-control" id="castMemberName" @bind="inputName" placeholder="Enter your name">
+      </div>
+      <button class="btn btn-primary mt-3" @onclick="Login">Start Supporting</button>
+    </div>
+  </div>
+}
+else
+{
+  <div class="row">
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h4>Welcome, @Name</h4>
+        </div>
+        <div class="card-body">
+          <h5>Unclaimed Chats</h5>
+          @if (hasUnclaimedChat)
+          {
+            <div class="list-group">
+              <div class="list-group-item d-flex justify-content-between align-items-center">
+                <span>New chat available</span>
+                <button class="btn btn-sm btn-primary" @onclick="ClaimNextChat">Claim</button>
+              </div>
+            </div>
+          }
+          else
+          {
+            <p>No chats waiting</p>
+          }
+        </div>
+      </div>
+
+      <div class="card mt-3">
+        <div class="card-header">
+          <h5>Your Assigned Chats</h5>
+        </div>
+        <div class="card-body">
+          @if (assignedChats.Any())
+          {
+            <div class="list-group">
+              @foreach (var chat in assignedChats)
+              {
+                <button class="list-group-item list-group-item-action" @onclick="() => SelectChat(chat)">
+                  Chat @chat
+                </button>
+              }
+            </div>
+          }
+          else
+          {
+            <p>No assigned chats</p>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-8">
+      @if (!string.IsNullOrEmpty(selectedChatId))
+      {
+        <Chat ChatId="@selectedChatId" SenderType="SenderType.CastMember" Sender="castMemberGrain" Title="Support Chat" />
+      }
+      else
+      {
+        <div class="alert alert-info">
+          Select a chat from the list or claim a new chat to start supporting.
+        </div>
+      }
+    </div>
+  </div>
+}
+
+@code {
+  [Parameter]
+  public string? Name { get; set; }
+
+  private string inputName = string.Empty;
+  private bool hasUnclaimedChat = false;
+  private List<string> assignedChats = new();
+  private string selectedChatId = string.Empty;
+
+  private ICastMemberGrain? castMemberGrain;
+  private IChatQueueGrain? chatManagerGrain;
+  private System.Threading.Timer? refreshTimer;
+
+  protected override async Task OnInitializedAsync()
+  {
+    chatManagerGrain = GrainFactory.GetGrain<IChatQueueGrain>("default");
+
+    if (!string.IsNullOrEmpty(Name))
+    {
+      castMemberGrain = GrainFactory.GetGrain<ICastMemberGrain>(Name);
+      await InitializeCastMember();
+    }
+  }
+
+  protected override void OnAfterRender(bool firstRender)
+  {
+    if (firstRender && !string.IsNullOrEmpty(Name))
+    {
+      // Setup timer to refresh chats every few seconds
+      refreshTimer = new System.Threading.Timer(
+      async _ => await RefreshChats(),
+      null,
+      TimeSpan.FromSeconds(3),
+      TimeSpan.FromSeconds(3)
+      );
+    }
+  }
+
+  private async Task InitializeCastMember()
+  {
+    if (castMemberGrain == null) return;
+
+    await RefreshChats();
+
+    // Load assigned chats
+    assignedChats = (await castMemberGrain.GetAssignedChats()).ToList();
+
+    // Select first assigned chat if available and none is selected
+    if (string.IsNullOrEmpty(selectedChatId) && assignedChats.Any())
+    {
+      selectedChatId = assignedChats.First();
+    }
+  }
+
+  private async Task RefreshChats()
+  {
+    try
+    {
+      if (chatManagerGrain != null)
+      {
+        // Check if there are unclaimed chats
+        hasUnclaimedChat = await chatManagerGrain.HasUnclaimedChat();
+
+        // Refresh assigned chats if cast member is logged in
+        if (castMemberGrain != null)
+        {
+          assignedChats = (await castMemberGrain.GetAssignedChats()).ToList();
+        }
+
+        await InvokeAsync(StateHasChanged);
+      }
+    }
+    catch (Exception ex)
+    {
+      Logger.LogError(ex, "Error refreshing chats");
+    }
+  }
+
+  private void Login()
+  {
+    if (!string.IsNullOrWhiteSpace(inputName))
+    {
+      NavigationManager.NavigateTo($"/CastMember/{inputName}");
+    }
+  }
+
+  private async Task ClaimNextChat()
+  {
+    if (string.IsNullOrEmpty(Name) || chatManagerGrain == null) return;
+
+    // Use the new ClaimNextChat method on the grain
+    bool success = await chatManagerGrain.ClaimNextChat(Name);
+
+    if (success)
+    {
+      // Refresh to get the newly assigned chat
+      await RefreshChats();
+
+      // Select the most recently assigned chat
+      var latestChats = await castMemberGrain!.GetAssignedChats();
+      if (latestChats.Any())
+      {
+        selectedChatId = latestChats.Last();
+      }
+    }
+  }
+
+  private void SelectChat(string chatId)
+  {
+    selectedChatId = chatId;
+    StateHasChanged();
+  }
+
+  public void Dispose()
+  {
+    refreshTimer?.Dispose();
+  }
+}

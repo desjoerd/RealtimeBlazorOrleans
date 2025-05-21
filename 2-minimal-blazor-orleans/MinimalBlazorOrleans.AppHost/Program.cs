@@ -1,24 +1,22 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
 var storage = builder.AddAzureStorage("azure-storage")
-    .RunAsEmulator(e => e.WithLifetime(ContainerLifetime.Persistent));
+    .RunAsEmulator();
 
 var blobs = storage.AddBlobs("blobs");
 var tables = storage.AddTables("tables");
 
 var orleans = builder.AddOrleans("Orleans")
-    .WithDevelopmentClustering();
-    // .WithClustering(tables)
-    // This is the storage used for streaming and must be named PubSubStore
-    // .WithGrainStorage("PubSubStore", tables)
-    // .WithMemoryStreaming("Default");
+    .WithClustering(tables)
+    .WithGrainStorage("Default", blobs);
 
-builder.AddProject<Projects.MinimalBlazorOrleans>("MinimalBlazorOrleans")
+var app = builder.AddProject<Projects.MinimalBlazorOrleans>("MinimalBlazorOrleans")
     .WithReference(orleans)
-    // .WithReference(blobs)
-    // .WithReference(tables)
+    .WithReference(blobs)
+    .WithReference(tables)
     .WithExternalHttpEndpoints()
     .WithHttpHealthCheck("/health")
-    .WithReplicas(1);
+    .WithReplicas(3)
+    .WithHttpsEndpoint();
 
 builder.Build().Run();
