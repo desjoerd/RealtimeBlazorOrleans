@@ -1,11 +1,10 @@
 ﻿@using MinimalBlazorOrleans.Grains
 @using MinimalBlazorOrleans.Helpers
-@using Orleans.Streams
 @implements IAsyncDisposable
 @implements ICounterObserver
 
 @inject IClusterClient OrleansClient
-@inject ILogger<CounterComponent> Logger
+@inject ILogger<CounterComponentWithStreaming> Logger
 
 <div class="counter-component">
     @if (isLoaded)
@@ -28,24 +27,14 @@
     public string CounterId { get; set; } = "counter1";
 
     private int currentCount;
-    // private StreamSubscriptionHandle<int> subscriptionHandle = null!;
     private ICounterGrain counterGrain = null!;
-    private bool isLoaded = false;
-    private IAsyncDisposable? observerHandle = null;
+    private bool isLoaded;
+    private IAsyncDisposable? observerHandle;
 
     protected override async Task OnParametersSetAsync()
     {
-        // Subscribe to the Orleans stream using the provided CounterId and the interface name as the namespace.
-        var streamProvider = OrleansClient.GetStreamProvider("DefaultStreaming");
-        var stream = streamProvider.GetStream<int>(nameof(ICounterGrain), CounterId);
-        var handle = await stream.SubscribeAsync(async (updatedCount, sequenceToken) => { });
-        // {
-        //     await InvokeAsync(() =>
-        //     {
-        //         currentCount = updatedCount;
-        //         StateHasChanged();
-        //     });
-        // });
+        await (observerHandle?.DisposeAsync() ?? ValueTask.CompletedTask);
+        observerHandle = null;
 
         // Retrieve the counter grain with the specified ID and initialize the current count.
         counterGrain = OrleansClient.GetGrain<ICounterGrain>(CounterId);
@@ -67,10 +56,7 @@
 
     public async ValueTask DisposeAsync()
     {
-        if(observerHandle is not null)
-        {
-            await observerHandle.DisposeAsync();
-        }
+        await (observerHandle?.DisposeAsync() ?? ValueTask.CompletedTask);
     }
 
     public Task OnCountUpdated(int count)

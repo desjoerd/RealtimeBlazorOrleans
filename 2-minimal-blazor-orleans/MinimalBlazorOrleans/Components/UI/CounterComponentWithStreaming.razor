@@ -1,0 +1,75 @@
+﻿@using MinimalBlazorOrleans.Grains
+@using Orleans.Streams
+@implements IAsyncDisposable
+@implements ICounterObserver
+
+@inject IClusterClient OrleansClient
+
+<div class="counter-component">
+    @if (isLoaded)
+    {
+        <h3>Counter Updates for @CounterId</h3>
+        <div>
+            <p>Current Count: @currentCount</p>
+            <button class="btn btn-primary" @onclick="IncrementCount">Increment</button>
+            <button class="btn btn-secondary" @onclick="DecrementCount">Decrement</button>
+        </div>
+    }
+    else
+    {
+        <p>Loading...</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string CounterId { get; set; } = "counter1";
+
+    private int currentCount;
+    private StreamSubscriptionHandle<int>? subscriptionHandle = null!;
+    private ICounterGrain counterGrain = null!;
+    private bool isLoaded = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await (subscriptionHandle?.UnsubscribeAsync() ?? Task.CompletedTask);
+
+        var streamProvider = OrleansClient.GetStreamProvider("DefaultStreaming");
+        var stream = streamProvider.GetStream<int>(nameof(ICounterGrain), CounterId);
+        subscriptionHandle = await stream.SubscribeAsync(async (updatedCount, sequenceToken) =>
+        {
+            await InvokeAsync(() =>
+            {
+                currentCount = updatedCount;
+                StateHasChanged();
+            });
+        });
+
+        // Retrieve the counter grain with the specified ID and initialize the current count.
+        counterGrain = OrleansClient.GetGrain<ICounterGrain>(CounterId);
+        currentCount = await counterGrain.GetCount();
+
+        isLoaded = true;
+    }
+
+    private async Task IncrementCount()
+    {
+        await counterGrain.Increment();
+    }
+
+    private async Task DecrementCount()
+    {
+        await counterGrain.Decrement();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await (subscriptionHandle?.UnsubscribeAsync() ?? Task.CompletedTask);
+    }
+
+    public Task OnCountUpdated(int count)
+    {
+        currentCount = count;
+        return Task.CompletedTask;
+    }
+}

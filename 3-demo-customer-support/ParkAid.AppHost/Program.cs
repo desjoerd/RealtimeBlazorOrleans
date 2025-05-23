@@ -22,7 +22,6 @@ var orleans = builder.AddOrleans("Orleans")
 var app = builder.AddProject<Projects.ParkAid_WebApp>("WebApp")
     .WaitFor(storage)
     .WithReference(orleans)
-    .WithHttpHealthCheck("/health")
     .WithReplicas(3)
     .WithExternalHttpEndpoints();
 

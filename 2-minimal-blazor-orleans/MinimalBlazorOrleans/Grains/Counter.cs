@@ -43,6 +43,8 @@ public class CounterGrain(ILogger<CounterGrain> logger) : Grain, ICounterGrain
 
     private async Task PublishUpdate()
     {
+        await observerManager.Notify(o => o.OnCountUpdated(Count));
+
         await this.GetStreamProvider("DefaultStreaming")
             .GetStream<int>(nameof(ICounterGrain), this.GetPrimaryKeyString())
             .OnNextAsync(Count);

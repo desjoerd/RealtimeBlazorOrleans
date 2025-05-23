@@ -13,7 +13,8 @@
 
 @foreach (var counter in counters)
 {
-    <CounterComponent CounterId="@counter" />
+    <CounterComponentWithStreaming CounterId="@counter" />
+    <CounterComponentWithObserver CounterId="@counter" />
 }
 
 @code {

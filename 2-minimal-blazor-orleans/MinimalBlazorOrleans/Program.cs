@@ -21,10 +21,6 @@ builder.UseOrleans(options =>
     options.AddActivityPropagation();
 });
 
-builder.Services.AddOpenTelemetry()
-    .WithTracing(tracing => tracing.AddSource("Microsoft.Orleans.Application"));
-
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 

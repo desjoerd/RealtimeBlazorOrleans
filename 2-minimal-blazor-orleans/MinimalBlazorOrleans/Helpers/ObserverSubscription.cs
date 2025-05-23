@@ -78,7 +78,7 @@ public class ObserverSubscription<TObservableGrain, TObserver> : IAsyncDisposabl
                 }
                 else
                 {
-                    // The poll watcher object has been cleaned up, so stop refreshing its subscription.
+                    // The watcher object has been cleaned up, so stop refreshing its subscription.
                     break;
                 }
             }
@@ -88,7 +88,7 @@ public class ObserverSubscription<TObservableGrain, TObserver> : IAsyncDisposabl
             // The watcher task has been cancelled, so stop refreshing its subscription.
         }
 
-        // Notify the poll grain that we are no longer interested
+        // Notify the grain that we are no longer interested
         await observedGrain.Unsubscribe(observerObjectReference);
     }
 
